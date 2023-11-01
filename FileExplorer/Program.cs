@@ -7,11 +7,12 @@ using FileExplorer.Services;
 using FileExplorer.Validators;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Host
+    .UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration))
     .UseDefaultServiceProvider(options =>
     {
         options.ValidateOnBuild = true;
@@ -51,10 +52,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-builder.Services.AddTransient<IIdentityService, IdentityService>();
+builder.Services.AddHostedService<BackgroundTaskHandler>();
+builder.Services.AddSingleton<IUploadProgressService, UploadProgressService>();
 builder.Services.AddScoped<IValidator<LogIn>, LogInValidator>();
 builder.Services.AddScoped<IUserFileService, UserFileService>();
 builder.Services.AddScoped<IFileShareLinkService, FileShareLinkService>();
+builder.Services.AddTransient<IIdentityService, IdentityService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -81,6 +84,6 @@ app.UseAuthorization();
 
 app.MapIdentityEndpoints();
 app.MapFileEndpoints();
-app.MapShareLinkEndpoints();
+app.MapOtherEndpoints();
 
 app.Run();

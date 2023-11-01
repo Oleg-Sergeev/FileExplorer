@@ -119,7 +119,7 @@ namespace FileExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("OneTimeShareLinks");
+                    b.ToTable("OneTimeShareLinks", (string)null);
                 });
 
             modelBuilder.Entity("FileExplorer.Data.UserFile", b =>
@@ -147,7 +147,7 @@ namespace FileExplorer.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFiles");
+                    b.ToTable("UserFiles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

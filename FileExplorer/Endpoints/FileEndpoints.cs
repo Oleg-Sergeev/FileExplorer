@@ -21,6 +21,8 @@ public static class FileEndpoints
         fileGroup.MapGet("/share/{id:guid}", GetFilesByOneTimeLinkAsync)
             .AllowAnonymous();
 
+        fileGroup.MapGet("/progress/{id}", GetFileGroupProgress);
+
         return app;
     }
 
@@ -83,7 +85,6 @@ public static class FileEndpoints
         return res.ToMinimalApiResult();
     }
 
-
     private static async Task<IResult> GetFilesByOneTimeLinkAsync([FromServices] IUserFileService userFileService, [FromRoute] Guid id)
     {
         var streamRes = await userFileService.GetZipByOneTimeLinkAsync(id);
@@ -94,5 +95,13 @@ public static class FileEndpoints
         var value = streamRes.Value;
 
         return Results.File(value.Stream, value.Name.GetContentType(), value.Name);
+    }
+    
+    private static IResult GetFileGroupProgress([FromServices] IUploadProgressService progressService, [FromRoute] string id)
+    {
+        if (progressService.TryGetFilesProgress(Guid.Parse(id), out var files))
+            return Results.Json(files);
+
+        return Results.NotFound();
     }
 }

@@ -2,6 +2,7 @@
 using System.Text;
 using Ardalis.Result;
 using FileExplorer.Data;
+using FileExplorer.Extensions;
 using FileExplorer.Models.UserFile;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +12,15 @@ public class UserFileService : IUserFileService
 {
     private readonly FilesDbContext _context;
     private readonly IWebHostEnvironment _environment;
+    private readonly IUploadProgressService _uploadProgressService;
+    private readonly IServiceProvider _serviceProvider;
 
-    public UserFileService(FilesDbContext appContext, IWebHostEnvironment environment)
+    public UserFileService(FilesDbContext appContext, IWebHostEnvironment environment, IUploadProgressService uploadProgressService, IServiceProvider serviceProvider)
     {
         _context = appContext;
         _environment = environment;
+        _uploadProgressService = uploadProgressService;
+        _serviceProvider = serviceProvider;
     }
 
 
@@ -71,7 +76,7 @@ public class UserFileService : IUserFileService
         return response;
     }
 
-    async Task<Result> IUserFileService.UploadAsync(IFormFileCollection uploadFiles, string userId)
+    async Task<Result<Guid>> IUserFileService.UploadAsync(IFormFileCollection uploadFiles, string userId)
     {
         var hasUser = await _context.Users.AnyAsync(u => u.Id == userId);
 
@@ -83,22 +88,26 @@ public class UserFileService : IUserFileService
         if (!Directory.Exists(userFilesFolder))
             Directory.CreateDirectory(userFilesFolder);
 
+        var guid = Guid.NewGuid();
+
         foreach (var uploadFile in uploadFiles)
         {
             var filePath = Path.Combine(userFilesFolder, uploadFile.FileName);
 
-            using MemoryStream ms = new();
+            var scope = _serviceProvider.CreateScope();
+
+            var backgroundTaskHandler = scope.ServiceProvider.GetRequiredHostedService<BackgroundTaskHandler>();
+
+            MemoryStream ms = new();
             await uploadFile.CopyToAsync(ms);
-            await File.WriteAllBytesAsync(filePath, ms.ToArray());
+            ms.Position = 0;
 
-            var userFile = new UserFile(userId, uploadFile.FileName);
+            _uploadProgressService.AddFile(guid, filePath);
 
-            _context.UserFiles.Add(userFile);
+            backgroundTaskHandler.EnqueueTask(() => UploadFileAsync(scope, ms, uploadFile.FileName, userId, filePath, guid, backgroundTaskHandler.Token));
         }
 
-        await _context.SaveChangesAsync();
-
-        return Result.Success();
+        return Result.Success(guid);
     }
 
     async Task<Result<UserFileStreamResponse>> IUserFileService.GetZipByOneTimeLinkAsync(Guid guid)
@@ -157,5 +166,46 @@ public class UserFileService : IUserFileService
         }
 
         return outputStream;
+    }
+
+    public static async Task UploadFileAsync(IServiceScope scope, Stream fileStream, string fileName, string userId, string filePath, Guid guid, CancellationToken cancellationToken)
+    {
+        var progressService = scope.ServiceProvider.GetRequiredService<IUploadProgressService>();
+
+        byte[] buffer = new byte[2 * 1024];
+
+        progressService.AddFile(guid, filePath);
+
+        using FileStream output = File.Create(filePath);
+
+        long totalBytes = fileStream.Length;
+        long totalReadBytes = 0;
+        int readBytes;
+
+        while ((readBytes = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            await output.WriteAsync(buffer.AsMemory(0, readBytes), cancellationToken);
+
+            totalReadBytes += readBytes;
+
+            var progress = Math.Round(totalReadBytes / (double)totalBytes * 100, 2);
+
+            var x = Random.Shared.Next(0, 100);
+            if (x > 95)
+                throw new Exception("Test fail");
+
+            progressService.UpdateProgress(guid, filePath, progress);
+
+            await Task.Delay(200, cancellationToken); // For tests
+        }
+
+        var userFile = new UserFile(userId, fileName);
+
+        var context = scope.ServiceProvider.GetRequiredService<FilesDbContext>();
+        context.UserFiles.Add(userFile);
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        scope.Dispose();
     }
 }

@@ -5,14 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileExplorer.Endpoints;
 
-public static class ShareLinkEndpoints
+public static class OtherEndpoints
 {
-    public static WebApplication MapShareLinkEndpoints(this WebApplication app)
+    public static WebApplication MapOtherEndpoints(this WebApplication app)
     {
-        var fileGroup = app.MapGroup("/link")
+        app.MapPost("/link/create/onetime", CreateOneTimeLinkAsync)
             .RequireAuthorization();
-
-        fileGroup.MapPost("/create/onetime", CreateOneTimeLinkAsync);
 
         return app;
     }

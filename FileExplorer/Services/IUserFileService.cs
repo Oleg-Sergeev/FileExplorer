@@ -9,5 +9,5 @@ public interface IUserFileService
     Task<Result<UserFileStreamResponse>> GetAsync(int id, string userId);
     Task<Result<UserFileStreamResponse>> GetZipAsync(IEnumerable<int> ids, string userId);
     Task<Result<UserFileStreamResponse>> GetZipByOneTimeLinkAsync(Guid guid);
-    Task<Result> UploadAsync(IFormFileCollection uploadFiles, string userId);
+    Task<Result<Guid>> UploadAsync(IFormFileCollection uploadFiles, string userId);
 }
