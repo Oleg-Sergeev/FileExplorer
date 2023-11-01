@@ -7,7 +7,7 @@
 - Запустить проект
 
 ## API
-Протестировать API можно через Swagger, или импортировать файл postman_api.json в Postman
+Протестировать API можно через Swagger, или импортировать файл FileExplorerAPI.postman_collection.json в Postman
 
 - /files/get - получить информацию о всех файлах
 - /files/get/{id} - получить информацию об указанном файле
