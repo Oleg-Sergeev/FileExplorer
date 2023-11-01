@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using Serilog;
 
 namespace FileExplorer.Services;
@@ -9,7 +8,7 @@ public class BackgroundTaskHandler : IHostedService
     private readonly Serilog.ILogger _logger = Log.ForContext<BackgroundTaskHandler>();
     private readonly ConcurrentQueue<Task> _queue = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly SemaphoreSlim _semaphore = new(10);
+    private readonly SemaphoreSlim _semaphore = new(2);
 
     private Task? _loopTask;
 

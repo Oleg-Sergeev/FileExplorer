@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Files\" />
-    <Folder Include="wwwroot\Files\181f02a5-692d-4c58-85c2-3783f293a47f\" />
   </ItemGroup>
 
 </Project>

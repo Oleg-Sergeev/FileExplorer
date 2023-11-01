@@ -102,7 +102,9 @@ public class UserFileService : IUserFileService
             await uploadFile.CopyToAsync(ms);
             ms.Position = 0;
 
-            _uploadProgressService.AddFile(guid, filePath);
+            var fileKey = $"{guid}_{uploadFile.FileName}";
+
+            _uploadProgressService.AddFile(guid, fileKey);
 
             backgroundTaskHandler.EnqueueTask(() => UploadFileAsync(scope, ms, uploadFile.FileName, userId, filePath, guid, backgroundTaskHandler.Token));
         }
@@ -172,9 +174,11 @@ public class UserFileService : IUserFileService
     {
         var progressService = scope.ServiceProvider.GetRequiredService<IUploadProgressService>();
 
-        byte[] buffer = new byte[2 * 1024];
+        byte[] buffer = new byte[16 * 1024];
 
-        progressService.AddFile(guid, filePath);
+        var fileKey = $"{guid}_{fileName}";
+
+        progressService.AddFile(guid, fileKey);
 
         using FileStream output = File.Create(filePath);
 
@@ -190,13 +194,9 @@ public class UserFileService : IUserFileService
 
             var progress = Math.Round(totalReadBytes / (double)totalBytes * 100, 2);
 
-            var x = Random.Shared.Next(0, 100);
-            if (x > 95)
-                throw new Exception("Test fail");
+            progressService.UpdateProgress(guid, fileKey, progress);
 
-            progressService.UpdateProgress(guid, filePath, progress);
-
-            await Task.Delay(200, cancellationToken); // For tests
+            await Task.Delay(100, cancellationToken); // For test
         }
 
         var userFile = new UserFile(userId, fileName);
