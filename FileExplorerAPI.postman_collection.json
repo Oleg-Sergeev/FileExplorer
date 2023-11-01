@@ -1,0 +1,318 @@
+{
+	"info": {
+		"_postman_id": "af57c6e7-bb59-4f66-afba-78bd6060de10",
+		"name": "FileExplorerAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19601891"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Name\": \"Oleg\",\r\n    \"Password\": \"qwerty\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/login",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/logout",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get files",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/get",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"get"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get file",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/get/1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"get",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DownloadFile",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/download/1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"download",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DownloadFiles",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/download?ids=1&ids=2",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"download"
+					],
+					"query": [
+						{
+							"key": "ids",
+							"value": "1"
+						},
+						{
+							"key": "ids",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload files",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/upload",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Download files by onetime link",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "{enter url from request 'Create onetime link'}",
+					"host": [
+						"{enter url from request 'Create onetime link'}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get file uploading progress",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "https://localhost:7225/files/progress/{guid}",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"files",
+						"progress",
+						"{guid}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create onetime link",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    1, 2\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:7225/link/create/onetime",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "7225",
+					"path": [
+						"link",
+						"create",
+						"onetime"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
