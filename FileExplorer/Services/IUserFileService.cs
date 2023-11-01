@@ -1,10 +1,13 @@
-﻿using FileExplorer.Models.UserFile;
+﻿using Ardalis.Result;
+using FileExplorer.Models.UserFile;
 
 namespace FileExplorer.Services;
+
 public interface IUserFileService
 {
-    Task<FileStream?> GetAsync(int id, string userId);
-    Task<IReadOnlyCollection<GetUserFile>?> GetAsync(string userId);
-    Task<MemoryStream?> GetZipAsync(IEnumerable<int> ids, string userId);
-    Task UploadAsync(IFormFileCollection uploadFiles, string userId);
+    Task<Result<IReadOnlyCollection<UserFileResponse>>> GetAsync(string userId);
+    Task<Result<UserFileStreamResponse>> GetAsync(int id, string userId);
+    Task<Result<UserFileStreamResponse>> GetZipAsync(IEnumerable<int> ids, string userId);
+    Task<Result<UserFileStreamResponse>> GetZipByOneTimeLinkAsync(Guid guid);
+    Task<Result> UploadAsync(IFormFileCollection uploadFiles, string userId);
 }

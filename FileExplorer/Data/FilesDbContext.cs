@@ -8,6 +8,7 @@ public class FilesDbContext : IdentityDbContext<ApplicationUser>
 {
     public DbSet<UserFile> UserFiles => Set<UserFile>();
 
+    public DbSet<OneTimeShareLink> OneTimeShareLinks => Set<OneTimeShareLink>();
 
     public FilesDbContext(DbContextOptions<FilesDbContext> options)
         : base(options)

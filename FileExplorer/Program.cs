@@ -54,6 +54,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddTransient<IIdentityService, IdentityService>();
 builder.Services.AddScoped<IValidator<LogIn>, LogInValidator>();
 builder.Services.AddScoped<IUserFileService, UserFileService>();
+builder.Services.AddScoped<IFileShareLinkService, FileShareLinkService>();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -78,5 +81,6 @@ app.UseAuthorization();
 
 app.MapIdentityEndpoints();
 app.MapFileEndpoints();
+app.MapShareLinkEndpoints();
 
 app.Run();

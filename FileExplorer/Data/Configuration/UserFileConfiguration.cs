@@ -9,8 +9,5 @@ public class UserFileConfiguration : IEntityTypeConfiguration<UserFile>
     {
         builder.Property(uf => uf.CreatedAt)
             .HasDefaultValueSql("GETDATE()");
-
-        builder.HasIndex(uf => uf.Name)
-            .IsUnique();
     }
 }

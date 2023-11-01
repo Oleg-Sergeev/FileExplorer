@@ -1,5 +1,4 @@
-﻿using System.Net;
-using FileExplorer.Filters;
+﻿using FileExplorer.Filters;
 using FileExplorer.Models;
 using FileExplorer.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +10,10 @@ public static class IdentityEndpoints
     public static WebApplication MapIdentityEndpoints(this WebApplication app)
     {
         app.MapPost("/login", LogInAsync)
-           .AddEndpointFilter<LogInIsValidFilter>()
-           .Produces<BadRequestResult>((int)HttpStatusCode.BadRequest)
-           .Produces<UnauthorizedResult>((int)HttpStatusCode.Unauthorized)
-           .Produces<OkResult>();
+           .AddEndpointFilter<LogInIsValidFilter>();
 
         app.MapGet("/logout", LogOutAsync)
-           .RequireAuthorization()
-           .Produces<OkResult>();
+           .RequireAuthorization();
 
         return app;
     }

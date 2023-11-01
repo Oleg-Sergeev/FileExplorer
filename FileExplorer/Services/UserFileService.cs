@@ -1,5 +1,6 @@
 ﻿using System.IO.Compression;
 using System.Text;
+using Ardalis.Result;
 using FileExplorer.Data;
 using FileExplorer.Models.UserFile;
 using Microsoft.EntityFrameworkCore;
@@ -17,90 +18,65 @@ public class UserFileService : IUserFileService
         _environment = environment;
     }
 
-    async Task<IReadOnlyCollection<GetUserFile>?> IUserFileService.GetAsync(string userId)
+
+    async Task<Result<IReadOnlyCollection<UserFileResponse>>> IUserFileService.GetAsync(string userId)
     {
         var userFiles = await _context.UserFiles
             .AsNoTracking()
             .Where(uf => uf.UserId == userId)
-            .Select(uf => new GetUserFile(uf.Id, uf.Name, uf.CreatedAt))
+            .Select(uf => new UserFileResponse(uf.Id, uf.Name, uf.CreatedAt))
             .ToArrayAsync();
-
-        if (userFiles.Length == 0)
-            return null;
 
         return userFiles;
     }
 
-    async Task<FileStream?> IUserFileService.GetAsync(int id, string userId)
+    async Task<Result<UserFileStreamResponse>> IUserFileService.GetAsync(int id, string userId)
     {
         var userFile = await _context.UserFiles
             .AsNoTracking()
-            .Where(uf => uf.Id == id)
+            .Where(uf => uf.Id == id && uf.UserId == userId)
             .FirstOrDefaultAsync();
 
         if (userFile is null)
-            return null;
-
-        if (userFile.UserId != userId)
-            return null;
+            return Result.NotFound("File was not found");
 
         var path = Path.Combine(_environment.WebRootPath, "Files", userId, userFile.Name);
 
         if (!File.Exists(path))
-            return null;
+            throw new FileNotFoundException($"The file {userFile.Name} ({id}) is contained in the database, but is not physically present");
 
         var fileStream = File.OpenRead(path);
 
-        return fileStream;
+        UserFileStreamResponse response = new(fileStream, userFile.Name);
+
+        return response;
     }
 
-    async Task<MemoryStream?> IUserFileService.GetZipAsync(IEnumerable<int> ids, string userId)
+    async Task<Result<UserFileStreamResponse>> IUserFileService.GetZipAsync(IEnumerable<int> ids, string userId)
     {
         var userFiles = await _context.UserFiles
             .AsNoTracking()
-            .Where(uf => ids.Contains(uf.Id))
+            .Where(uf => uf.UserId == userId && ids.Contains(uf.Id))
             .ToArrayAsync();
 
         if (userFiles.Length == 0)
-            return null;
+            return Result.NotFound("Files were not found");
 
-        if (userFiles.Any(uf => uf.UserId != userId))
-            return null;
+        var zipStream = GenerateZip(userFiles, Path.Combine(_environment.WebRootPath, "Files", userId));
 
+        zipStream.Position = 0;
 
-        var outputStream = new MemoryStream();
+        UserFileStreamResponse response = new(zipStream, $"{Guid.NewGuid():n}.zip");
 
-        using (var archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true, Encoding.GetEncoding("cp866")))
-        {
-            foreach (var userFile in userFiles)
-            {
-                var path = Path.Combine(_environment.WebRootPath, "Files", userId, userFile.Name);
-
-                if (!File.Exists(path))
-                    return null;
-
-                var entry = archive.CreateEntry(userFile.Name);
-
-                using var entryStream = entry.Open();
-
-                using var fileStream = File.OpenRead(path);
-
-                fileStream.CopyTo(entryStream);
-            }
-        }
-
-        outputStream.Position = 0;
-
-        return outputStream;
+        return response;
     }
 
-
-    async Task IUserFileService.UploadAsync(IFormFileCollection uploadFiles, string userId)
+    async Task<Result> IUserFileService.UploadAsync(IFormFileCollection uploadFiles, string userId)
     {
         var hasUser = await _context.Users.AnyAsync(u => u.Id == userId);
 
         if (!hasUser)
-            return;
+            return Result.NotFound("User was not found");
 
         var userFilesFolder = Path.Combine(_environment.WebRootPath, "Files", userId);
 
@@ -121,5 +97,65 @@ public class UserFileService : IUserFileService
         }
 
         await _context.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    async Task<Result<UserFileStreamResponse>> IUserFileService.GetZipByOneTimeLinkAsync(Guid guid)
+    {
+        var link = await _context.OneTimeShareLinks
+            .FirstOrDefaultAsync(link => link.Id == guid);
+
+        if (link is null)
+            return Result.NotFound("Link was not found");
+
+        if (link.IsUsed)
+            return Result.Conflict("Link has already been used");
+
+        var fileIdsHashSet = link.FileIds.ToHashSet();
+
+        var userFiles = await _context.UserFiles
+            .AsNoTracking()
+            .Where(uf => fileIdsHashSet.Contains(uf.Id))
+            .ToArrayAsync();
+
+        var zipStream = GenerateZip(userFiles, Path.Combine(_environment.WebRootPath, "Files", link.UserId));
+
+        zipStream.Position = 0;
+
+        link.IsUsed = true;
+        link.UsedAt = DateTime.Now;
+
+        await _context.SaveChangesAsync();
+
+        UserFileStreamResponse response = new(zipStream, $"shared_{Guid.NewGuid():n}.zip");
+
+        return response;
+    }
+
+
+    private static MemoryStream GenerateZip(IEnumerable<UserFile> userFiles, string userFolderPath)
+    {
+        var outputStream = new MemoryStream();
+
+        using var archive = new ZipArchive(outputStream, ZipArchiveMode.Create, true, Encoding.GetEncoding("cp866"));
+
+        foreach (var userFile in userFiles)
+        {
+            var path = Path.Combine(userFolderPath, userFile.Name);
+
+            if (!File.Exists(path))
+                throw new FileNotFoundException($"The file {userFile.Name} ({userFile.Id}) is contained in the database, but is not physically present");
+
+            var entry = archive.CreateEntry(userFile.Name);
+
+            using var entryStream = entry.Open();
+
+            using var fileStream = File.OpenRead(path);
+
+            fileStream.CopyTo(entryStream);
+        }
+
+        return outputStream;
     }
 }
