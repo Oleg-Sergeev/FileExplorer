@@ -34,6 +34,20 @@ public class UserFileService : IUserFileService
 
         return userFiles;
     }
+    
+    async Task<Result<UserFileResponse>> IUserFileService.GetAsync(string userId, int id)
+    {
+        var userFile = await _context.UserFiles
+            .AsNoTracking()
+            .Where(uf => uf.UserId == userId && uf.Id == id)
+            .Select(uf => new UserFileResponse(uf.Id, uf.Name, uf.CreatedAt))
+            .FirstOrDefaultAsync();
+
+        if (userFile is null)
+            return Result.NotFound("File was not found");
+
+        return userFile;
+    }
 
     async Task<Result<UserFileStreamResponse>> IUserFileService.GetAsync(int id, string userId)
     {

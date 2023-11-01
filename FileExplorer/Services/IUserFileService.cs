@@ -6,6 +6,7 @@ namespace FileExplorer.Services;
 public interface IUserFileService
 {
     Task<Result<IReadOnlyCollection<UserFileResponse>>> GetAsync(string userId);
+    Task<Result<UserFileResponse>> GetAsync(string userId, int id);
     Task<Result<UserFileStreamResponse>> GetAsync(int id, string userId);
     Task<Result<UserFileStreamResponse>> GetZipAsync(IEnumerable<int> ids, string userId);
     Task<Result<UserFileStreamResponse>> GetZipByOneTimeLinkAsync(Guid guid);

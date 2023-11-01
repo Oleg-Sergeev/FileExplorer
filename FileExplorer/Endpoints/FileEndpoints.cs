@@ -14,6 +14,7 @@ public static class FileEndpoints
             .RequireAuthorization();
 
         fileGroup.MapGet("/get", GetFileInfosAsync);
+        fileGroup.MapGet("/get/{id:int}", GetFileInfoAsync);
         fileGroup.MapGet("/download", GetZipAsync);
         fileGroup.MapGet("/download/{id}", GetFileAsync);
         fileGroup.MapPost("/upload", UploadFilesAsync);
@@ -27,6 +28,18 @@ public static class FileEndpoints
     }
 
 
+    private static async Task<IResult> GetFileInfoAsync(HttpContext context, [FromServices] IUserFileService userFileService, int id)
+    {
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (userId is null)
+            return Results.Unauthorized();
+
+        var fileRes = await userFileService.GetAsync(userId, id);
+
+        return fileRes.ToMinimalApiResult();
+    }
+    
     private static async Task<IResult> GetFileInfosAsync(HttpContext context, [FromServices] IUserFileService userFileService)
     {
         var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
