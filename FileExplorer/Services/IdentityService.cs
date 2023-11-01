@@ -1,4 +1,4 @@
-﻿using FileExplorer.Data.Identity;
+﻿using FileExplorer.Data;
 using FileExplorer.Models;
 using Microsoft.AspNetCore.Identity;
 
@@ -15,7 +15,7 @@ public class IdentityService : IIdentityService
         _signInManager = signInManager;
     }
 
-    public async Task<IResult> LogInAsync(LogIn login)
+    async Task<IResult> IIdentityService.LogInAsync(LogIn login)
     {
         var user = await _userManager.FindByNameAsync(login.Name);
 
@@ -48,7 +48,7 @@ public class IdentityService : IIdentityService
     }
 
 
-    public async Task<IResult> LogOutAsync()
+    async Task<IResult> IIdentityService.LogOutAsync()
     {
         await _signInManager.SignOutAsync();
 
